@@ -21,7 +21,7 @@ public:
 
     static HRESULT COINIT(DWORD init_flag);
 
-    static bool DownloadPDBForFile(std::wstring executable_name, std::wstring symbol_folder);
+    static void DownloadPDBForFile(std::wstring executable_name, std::wstring symbol_folder);
 
     static HRESULT CreateDiaDataSourceWithoutComRegistration(IDiaDataSource** data_source);
 

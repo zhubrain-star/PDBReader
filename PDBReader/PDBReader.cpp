@@ -5,22 +5,21 @@
 #include <filesystem>
 
 int main() {
-    PDBReader::COINIT(COINIT_APARTMENTTHREADED);
-
-    auto ret = PDBReader::DownloadPDBForFile(L"C:\\windows\\system32\\ntoskrnl.exe", L"Symbols");
-
-    if (!ret) {
-        std::cout << "Download pdb failed\n" << std::endl;
+    try
+    {
+        PDBReader::COINIT(COINIT_APARTMENTTHREADED);
+        PDBReader::DownloadPDBForFile(L"C:\\windows\\system32\\ntoskrnl.exe", L"Symbols");
+        std::cout << "Download pdb succeed." << std::endl;
+        PDBReader reader2(L"C:\\windows\\system32\\ntoskrnl.exe", L"Symbols");
+        auto offset = reader2.FindStructMemberOffset(L"_EPROCESS", L"Protection");
+        std::cout << "Offset of Protection field in EPROCES: " << offset << std::endl;
+        system("pause");
     }
-    else {
-        std::cout << "Download pdb succeed\n" << std::endl;
+    catch (std::exception e)
+    {
+        std::cout << e.what() << std::endl;
     }
 
-    PDBReader reader2(L"C:\\windows\\system32\\ntoskrnl.exe", L"Symbols");
-    
-    reader2.FindStructMemberOffset(L"_EPROCESS", L"Protection");
-
-    system("pause");
     return 0;
 }
 
@@ -221,13 +220,13 @@ HRESULT PDBReader::COINIT(DWORD init_flag) {
     return CoInitializeEx(0, init_flag);
 }
 
-bool PDBReader::DownloadPDBForFile(std::wstring executable_name, std::wstring symbol_folder) {
+void PDBReader::DownloadPDBForFile(std::wstring executable_name, std::wstring symbol_folder) {
     CComPtr<IDiaDataSource> pSource;
     HRESULT hr;
 
     hr = CreateDiaDataSourceWithoutComRegistration(&pSource);
     if (FAILED(hr)) {
-        throw std::exception("Could not CoCreate CLSID_DiaSource. Register msdia80.dll.");
+        throw std::exception("Could not CoCreate CLSID_DiaSource. You should place msdiaXX.dll in current folder.");
     }
 
     std::filesystem::path sym_cache_folder = std::filesystem::absolute(symbol_folder);
@@ -236,10 +235,10 @@ bool PDBReader::DownloadPDBForFile(std::wstring executable_name, std::wstring sy
 
     hr = pSource->loadDataForExe(executable_name.c_str(), seach_path.c_str(), 0);
     if (FAILED(hr)) {
-        return false;
+        throw std::exception("Failed to download symbols. Maybe you should place symsrv.dll in current folder or check your internet connection.");
     }
 
-    return true;
+    return;
 }
 
 // We dont want to regsvr32 msdia140.dll on client's machine...
