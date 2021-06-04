@@ -15,6 +15,8 @@ public:
 
     size_t FindFunction(std::wstring func);
 
+    LONG FindStructMemberOffset(std::wstring structName, std::wstring memberName);
+
     // ~PDBReader();
 
     static HRESULT COINIT(DWORD init_flag);
@@ -22,8 +24,6 @@ public:
     static bool DownloadPDBForFile(std::wstring executable_name, std::wstring symbol_folder);
 
     static HRESULT CreateDiaDataSourceWithoutComRegistration(IDiaDataSource** data_source);
-
-    static void SetDiaDllName(std::wstring name);
 
 private:
     static inline std::wstring dia_dll_name = L"msdia140.dll";

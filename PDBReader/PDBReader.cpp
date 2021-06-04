@@ -7,11 +7,9 @@
 int TEST_CONST = 1;
 
 int main() {
-    // std::cout << "Hello World!\n" << std::endl;
-
     PDBReader::COINIT(COINIT_APARTMENTTHREADED);
 
-    auto ret = PDBReader::DownloadPDBForFile(L"C:\\Windows\\System32\\win32kfull.sys", L"Symbols");
+    auto ret = PDBReader::DownloadPDBForFile(L"C:\\windows\\system32\\ntoskrnl.exe", L"Symbols");
 
     if (!ret) {
         std::cout << "Download pdb failed\n" << std::endl;
@@ -20,25 +18,12 @@ int main() {
         std::cout << "Download pdb succeed\n" << std::endl;
     }
 
-    size_t addr;
-    DWORD type;
-
-    PDBReader reader(L"D:\\VisualStudioProjects\\PDBReader\\x64\\Debug\\PDBReader.pdb");
-    PDBReader reader2(L"C:\\Windows\\System32\\win32kfull.sys", L"Symbols");
+    PDBReader reader2(L"C:\\windows\\system32\\ntoskrnl.exe", L"Symbols");
     
-    addr = reader.FindSymbol(L"TEST_CONST", type);
-    std::cout << addr << ", " << type << std::endl;
-
-    addr = reader.FindFunction(L"PDBReader::DownloadPDBForFile");
-    std::cout << addr << std::endl;
-
-    addr = reader.FindConst(L"TEST_CONST");
-    std::cout << addr << std::endl;
-
-    addr = reader2.FindSymbol(L"NtUserBuildHwndList", type);
-    std::cout << addr << ", " << type << std::endl;
+    reader2.FindStructMemberOffset(L"_EPROCESS", L"Protection");
 
     system("pause");
+    return 0;
 }
 
 PDBReader::PDBReader(std::wstring pdb_name) {
@@ -47,7 +32,7 @@ PDBReader::PDBReader(std::wstring pdb_name) {
 
     hr = CreateDiaDataSourceWithoutComRegistration(&pSource);
     if (FAILED(hr)) {
-        throw std::exception("Could not CoCreate CLSID_DiaSource. Register msdia80.dll.");
+        throw std::exception("Could not CoCreate CLSID_DiaSource. You should place msdiaXX.dll in current folder.");
     }
 
     hr = pSource->loadDataFromPdb(pdb_name.c_str());
@@ -72,7 +57,7 @@ PDBReader::PDBReader(std::wstring executable_name, std::wstring search_path) {
 
     hr = CreateDiaDataSourceWithoutComRegistration(&pSource);
     if (FAILED(hr)) {
-        throw std::exception("Could not CoCreate CLSID_DiaSource. Register msdia80.dll.");
+        throw std::exception("Could not CoCreate CLSID_DiaSource. You should place msdiaXX.dll in current folder.");
     }
 
     // using format: srv*search_path* to treat target folder as a symbol cache and search it recursively
@@ -125,8 +110,6 @@ size_t PDBReader::FindSymbol(std::wstring sym, DWORD& type) {
         return 0;
     }
 
-    // May we should use pSymbol->get_relativeVirtualAddress()? But this function expect a dword return value
-    // and I'm not sure whether it is correct for 64bit machine
     ULONGLONG va = 0;
     hr = pSymbol->get_virtualAddress(&va);
     return va;
@@ -154,8 +137,6 @@ size_t PDBReader::FindConst(std::wstring const_name) {
         return 0;
     }
 
-    // May we should use pSymbol->get_relativeVirtualAddress()? But this function expect a dword return value
-    // and I'm not sure whether it is correct for 64bit machine
     ULONGLONG va = 0;
     hr = pSymbol->get_virtualAddress(&va);
     return va;
@@ -183,11 +164,59 @@ size_t PDBReader::FindFunction(std::wstring func) {
         return 0;
     }
 
-    // May we should use pSymbol->get_relativeVirtualAddress()? But this function expect a dword return value
-    // and I'm not sure whether it is correct for 64bit machine
     ULONGLONG va = 0;
     hr = pSymbol->get_virtualAddress(&va);
     return va;
+}
+
+LONG PDBReader::FindStructMemberOffset(std::wstring structName, std::wstring memberName)
+{
+    CComPtr<IDiaEnumSymbols> pEnumSymbols;
+    HRESULT hr;
+
+    hr = this->pGlobal->findChildren(SymTagEnum::SymTagUDT, structName.c_str(), nsfCaseSensitive, &pEnumSymbols);
+    if (FAILED(hr)) {
+        return 0;
+    }
+
+    LONG count = 0;
+    hr = pEnumSymbols->get_Count(&count);
+    if (count != 1 || (FAILED(hr))) {
+        return 0;
+    }
+
+    CComPtr<IDiaSymbol> pSymbol;
+    ULONG celt = 1;
+    hr = pEnumSymbols->Next(1, &pSymbol, &celt);
+    if ((FAILED(hr)) || (celt != 1)) {
+        return 0;
+    }
+
+    CComPtr<IDiaEnumSymbols> structEnumSymbols;
+    hr = pSymbol->findChildren(SymTagEnum::SymTagNull, memberName.c_str(), nsfCaseSensitive, &structEnumSymbols);
+    if (FAILED(hr)) {
+        return 0;
+    }
+
+    count = 0;
+    hr = structEnumSymbols->get_Count(&count);
+    if (count != 1 || (FAILED(hr))) {
+        return 0;
+    }
+
+    CComPtr<IDiaSymbol> memberSymbol;
+    celt = 1;
+    hr = structEnumSymbols->Next(1, &memberSymbol, &celt);
+    if ((FAILED(hr)) || (celt != 1)) {
+        return 0;
+    }
+
+    LONG offset = 0;
+    hr = memberSymbol->get_offset(&offset);
+    if (FAILED(hr)) {
+        return 0;
+    }
+    return offset;
 }
 
 HRESULT PDBReader::COINIT(DWORD init_flag) {
@@ -249,8 +278,4 @@ HRESULT PDBReader::CreateDiaDataSourceWithoutComRegistration(IDiaDataSource** da
         
     pClassFactory->Release();
     return S_OK;
-}
-
-void PDBReader::SetDiaDllName(std::wstring name) {
-    PDBReader::dia_dll_name = name;
 }
