@@ -4,8 +4,6 @@
 #include "PDBReader.h"
 #include <filesystem>
 
-int TEST_CONST = 1;
-
 int main() {
     PDBReader::COINIT(COINIT_APARTMENTTHREADED);
 
