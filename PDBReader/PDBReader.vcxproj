@@ -158,13 +158,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="PDBReader.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="PDBReader.h" />
+    <ClCompile Include="PDBReader\PDBReader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PDBReader\PDBReader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -16,7 +16,7 @@ int main()
         if (!offset)
         {
             std::cout << "Failed to find target symbol.\n";
-            return;
+            return 0;
         }
         std::cout << "Offset of Protection field in EPROCES: " << offset.value() << std::endl;
 

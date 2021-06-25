@@ -116,7 +116,7 @@ std::optional<size_t> PDBReader::FindConst(std::wstring const_name) {
     return va;
 }
 
-size_t PDBReader::FindFunction(std::wstring func) {
+std::optional<size_t> PDBReader::FindFunction(std::wstring func) {
     CComPtr<IDiaEnumSymbols> pEnumSymbols;
     HRESULT hr;
 

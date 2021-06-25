@@ -13,21 +13,24 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="PDBReader">
+      <UniqueIdentifier>{9f9a6009-3fe9-495f-872d-3ab54507ed79}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="PDBReader.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="PDBReader.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
+    <ClCompile Include="PDBReader\PDBReader.cpp">
+      <Filter>PDBReader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PDBReader\PDBReader.h">
+      <Filter>PDBReader</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
